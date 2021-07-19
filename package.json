@@ -1,0 +1,25 @@
+{
+  "name": "solitaire",
+  "version": "0.0.1",
+  "description": "Work in progress - A basic, bad implementation of Solitaire with terrible AI. For fun.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pinksynth/solitaire.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pinksynth/solitaire/issues"
+  },
+  "homepage": "https://github.com/pinksynth/solitaire#readme",
+  "devDependencies": {
+    "jest": "^27.0.6"
+  },
+  "dependencies": {
+    "@types/jest": "^26.0.24"
+  }
+}
