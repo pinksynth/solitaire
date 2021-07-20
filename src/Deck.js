@@ -1,10 +1,10 @@
 const Card = require("./Card")
 const { DIAMOND, CLUB, HEART, SPADE, VALUES } = require("./constants")
+const { shuffle } = require("./util")
 
 class Deck {
   constructor() {
     this.cards = this.generateCards()
-    console.log("this.cards", this.cards)
   }
 
   generateCards() {
@@ -17,7 +17,9 @@ class Deck {
     return cards
   }
 
-  shuffle() {}
+  shuffle() {
+    shuffle(this.cards)
+  }
 }
 
 module.exports = Deck

@@ -5,8 +5,15 @@ class Stack {
   }
 
   take(n = 1) {
-    return this.cards.splice(0, n)
+    return new Stack({ faceUp: this.faceUp, cards: this.cards.splice(-n) })
+  }
+
+  peek() {
+    return this.cards[0]
+  }
+
+  size() {
+    return this.cards.length
   }
 }
-
 module.exports = Stack
