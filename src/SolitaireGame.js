@@ -8,13 +8,12 @@ class SolitaireGame {
     this.foundations = this.generateFoundations()
     this.tableau = this.generateTableau()
     this.drawPile = new Stack({ cards: this.deck.cards })
+    this.showRowNumber = false
     this.deck.shuffle()
   }
 
   start() {
     this.dealTableau()
-    this.foundations[0].push()
-    // console.log("this.tableau", this.tableau)
     this.displayGame()
   }
 
@@ -28,12 +27,10 @@ class SolitaireGame {
     return this.generate(7, () => new TableauPile())
   }
 
-  generate(n, getObj) {
-    const stacks = []
-    for (let x = 1; x <= n; x++) {
-      stacks.push(getObj())
-    }
-    return stacks
+  generate(count, getObj) {
+    const objs = []
+    for (let obj = 1; obj <= count; obj++) objs.push(getObj())
+    return objs
   }
 
   dealTableau() {
@@ -46,10 +43,9 @@ class SolitaireGame {
   }
 
   displayGame() {
-    let strOutput = ""
-    strOutput += this.getFoundationsAndDrawPileString()
-    strOutput += this.getTableauString()
-    console.log(strOutput)
+    const drawPileString = this.getDrawPileString()
+    const foundationsString = this.getFoundationsString()
+    const tableauString = this.getTableauString()
   }
 
   getTableauString() {
@@ -70,9 +66,13 @@ class SolitaireGame {
       tableuPileCards[tableauIdx] = tableuPileCards[tableauIdx].reverse()
     }
     for (let row = 1; row <= BOARD_HEIGHT; row++) {
-      strOutput += `ROW ${row.toString().padStart(2, " ")}`
+      const pileIdx = row - 1
+      // Show row number if desired.
+      if (this.showRowNumber) {
+        strOutput += `ROW ${row.toString().padStart(2, " ")}  `
+      }
       for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
-        strOutput += tableuPileCards[tableauIdx][row] || "   "
+        strOutput += tableuPileCards[tableauIdx][pileIdx] || "   "
         strOutput += " "
       }
       strOutput += "\n"
@@ -80,15 +80,20 @@ class SolitaireGame {
     return strOutput
   }
 
-  getFoundationsAndDrawPileString() {
+  getFoundationsString() {
     let strOutput = ""
     this.foundations.forEach((f) => {
       const card = f.peek()
-      if (card) strOutput += card.getShortName()
+      if (card) strOutput += card.getShortName() + " "
       else strOutput += "   "
     })
-    strOutput += "\n"
     return strOutput
+  }
+
+  getDrawPileString() {
+    const card = this.drawPile.peek()
+    if (!card) return "   "
+    return card.getShortName()
   }
 }
 
