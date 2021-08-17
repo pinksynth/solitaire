@@ -2,7 +2,7 @@ const Card = require("./Card")
 
 class Stack {
   constructor({ cards, faceUp } = {}) {
-    this.cards = cards || []
+    this.cards = cards ? [...cards] : []
     if (this.cards.some((c) => !(c instanceof Card))) {
       throw new Error(
         'Stack constructor expected "cards" to be an array of Cards.'

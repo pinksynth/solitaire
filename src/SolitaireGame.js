@@ -1,20 +1,36 @@
+const inquirer = require("inquirer")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
 
+const mockConsole = {
+  clear: () => {},
+  log: () => {},
+}
+
 class SolitaireGame {
-  constructor() {
-    this.deck = new Deck()
+  constructor({ deck, testMode, showRowNumber } = {}) {
+    if (testMode) this.console = mockConsole
+    else this.console = console
+
+    this.deck = deck || new Deck()
     this.foundations = this.generateFoundations()
     this.tableau = this.generateTableau()
-    this.drawPile = new Stack({ cards: this.deck.cards })
-    this.showRowNumber = false
     this.deck.shuffle()
+
+    this.drawPile = new Stack({ cards: this.deck.cards })
+    this.showRowNumber = !!showRowNumber
   }
 
   start() {
     this.dealTableau()
+    // this.play()
+  }
+
+  async play() {
+    this.console.clear()
     this.displayGame()
+    // inquirer.prompt([{ type: 'input' }])
   }
 
   availableMoves() {}
@@ -34,6 +50,8 @@ class SolitaireGame {
   }
 
   dealTableau() {
+    // console.log("this.drawPile", this.drawPile)
+    // console.log("this.drawPile.size()", this.drawPile.size())
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const faceDownCards = this.drawPile.take(tableauIdx)
       const oneFaceUpCard = this.drawPile.take(1)
@@ -46,6 +64,9 @@ class SolitaireGame {
     const drawPileString = this.getDrawPileString()
     const foundationsString = this.getFoundationsString()
     const tableauString = this.getTableauString()
+    const output =
+      foundationsString + "  |  " + drawPileString + "\n\n" + tableauString
+    this.console.log(output)
   }
 
   getTableauString() {

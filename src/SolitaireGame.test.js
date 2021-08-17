@@ -9,14 +9,29 @@ const {
   KING,
   SEVEN,
   SPADE,
+  TEN,
+  THREE,
 } = require("./constants")
+const Deck = require("./Deck")
 const SolitaireGame = require("./SolitaireGame")
 const Stack = require("./Stack")
+
+const newQuietGame = (opts = {}) =>
+  new SolitaireGame({ testMode: true, ...opts })
+
+const setFrontOfDeck = (deck, cardConfigs) => {
+  for (const [suit, rank] of cardConfigs.reverse()) {
+    deck.bringCardToFront({ suit, rank })
+  }
+
+  // console.log("deck.length() ===== FROM setFrontOfDeck", deck.length())
+  return deck
+}
 
 test("starts games with a shuffled deck", () => {
   const gameDeckStrings = new Set()
   for (let x = 0; x < 100; x++) {
-    const game = new SolitaireGame()
+    const game = newQuietGame()
     const gameDeckString = game.deck.cards
       .map(({ rank, suit }) => `${rank}$${suit}`)
       .join(":")
@@ -27,7 +42,7 @@ test("starts games with a shuffled deck", () => {
 })
 
 test("starts the game with four empty foundations", () => {
-  const game = new SolitaireGame()
+  const game = newQuietGame()
   for (const foundationPile of game.foundations) {
     expect(foundationPile.size()).toBe(0)
   }
@@ -51,7 +66,7 @@ test("can render foundations properly", () => {
   ]
 
   for (const { cards, expectedString } of assertionConfigs) {
-    const game = new SolitaireGame()
+    const game = newQuietGame()
     const foundations = []
     for (const [suit, rank] of cards) {
       let stackCards = []
@@ -75,15 +90,35 @@ test("can render the draw pile properly", () => {
     { expectedString: "   ", cards: [] },
   ]
   for (const { expectedString, cards } of assertionConfigs) {
-    const game = new SolitaireGame()
+    const game = newQuietGame()
     const stackCards = cards.map(([suit, rank]) => new Card({ rank, suit }))
     game.drawPile = new Stack({ cards: stackCards })
     expect(game.getDrawPileString()).toBe(expectedString)
   }
 })
 
-test("has 'start' function and 'availableMoves' functions", () => {
-  const game = new SolitaireGame()
+// test("has 'start' function and 'availableMoves' functions", () => {
+//   const game = newQuietGame()
+//   game.start()
+//   game.availableMoves()
+// })
+
+test("availableMoves allows user to stack red card X on black card X+1", () => {
+  const deck = setFrontOfDeck(new Deck(), [
+    // This is the sole, face up card in tableau pile 1 (leftmost)
+    // This will be placed on top of the Four of Diamonds
+    [SPADE, THREE],
+    // This is the face down card in tableau pile 2. Ignore this.
+    [CLUB, TEN],
+    // This is the face up card in tableau pile 2
+    // The Three of Spades will be placed atop this.
+    [DIAMOND, FOUR],
+  ])
+
+  const game = new SolitaireGame({ deck })
+
+  console.log("game.deck", game.deck)
+  console.log("game.drawPile", game.drawPile)
+
   game.start()
-  game.availableMoves()
 })

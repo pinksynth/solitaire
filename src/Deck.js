@@ -1,5 +1,5 @@
 const Card = require("./Card")
-const { DIAMOND, CLUB, HEART, SPADE, VALUES } = require("./constants")
+const { DIAMOND, CLUB, HEART, JACK, SPADE, VALUES } = require("./constants")
 const { shuffle } = require("./util")
 
 class Deck {
@@ -19,6 +19,22 @@ class Deck {
 
   shuffle() {
     shuffle(this.cards)
+  }
+
+  bringCardToFront({ suit, rank }) {
+    const cardIdx = this.findCardIndex({ suit, rank })
+    if (cardIdx === -1) return false
+    const [card] = this.cards.splice(cardIdx, 1)
+    this.cards = [card, ...this.cards]
+    return true
+  }
+
+  findCardIndex({ suit, rank }) {
+    return this.cards.findIndex((c) => c.suit === suit && c.rank === rank)
+  }
+
+  length() {
+    return this.cards.length
   }
 }
 
