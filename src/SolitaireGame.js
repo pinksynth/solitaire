@@ -1,17 +1,10 @@
-const inquirer = require("inquirer")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
 
-const mockConsole = {
-  clear: () => {},
-  log: () => {},
-}
-
 class SolitaireGame {
-  constructor({ deck, testMode, showRowNumber } = {}) {
-    if (testMode) this.console = mockConsole
-    else this.console = console
+  constructor({ deck, console = console, showRowNumber } = {}) {
+    this.console = console
 
     this.deck = deck || new Deck()
     this.foundations = this.generateFoundations()
@@ -31,7 +24,6 @@ class SolitaireGame {
     this.console.clear()
     // this.foundations[0].push()
     this.displayGame()
-    // inquirer.prompt([{ type: 'input' }])
   }
 
   availableMoves() {}

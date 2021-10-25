@@ -1,3 +1,4 @@
+const { mockConsole } = require("../testHelpers")
 const Card = require("./Card")
 const {
   ACE,
@@ -17,7 +18,7 @@ const SolitaireGame = require("./SolitaireGame")
 const Stack = require("./Stack")
 
 const newQuietGame = (opts = {}) =>
-  new SolitaireGame({ testMode: true, ...opts })
+  new SolitaireGame({ console: mockConsole, ...opts })
 
 const setFrontOfDeck = (deck, cardConfigs) => {
   for (const [suit, rank] of cardConfigs.reverse()) {
