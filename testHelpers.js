@@ -1,4 +1,8 @@
-export const mockConsole = {
+const mockConsole = {
   clear: () => {},
   log: () => {},
+}
+
+module.exports = {
+  mockConsole,
 }

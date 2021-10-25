@@ -3,8 +3,8 @@ const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
 
 class SolitaireGame {
-  constructor({ deck, console = console, showRowNumber } = {}) {
-    this.console = console
+  constructor({ deck, gameConsole = globalThis.console, showRowNumber } = {}) {
+    this.gameConsole = gameConsole
 
     this.deck = deck || new Deck()
     this.foundations = this.generateFoundations()
@@ -21,7 +21,7 @@ class SolitaireGame {
   }
 
   async play() {
-    this.console.clear()
+    this.gameConsole.clear()
     // this.foundations[0].push()
     this.displayGame()
   }
@@ -43,8 +43,8 @@ class SolitaireGame {
   }
 
   dealTableau() {
-    // console.log("this.drawPile", this.drawPile)
-    // console.log("this.drawPile.size()", this.drawPile.size())
+    // gameConsole.log("this.drawPile", this.drawPile)
+    // gameConsole.log("this.drawPile.size()", this.drawPile.size())
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const faceDownCards = this.drawPile.take(tableauIdx)
       const oneFaceUpCard = this.drawPile.take(1)
@@ -59,7 +59,7 @@ class SolitaireGame {
     const tableauString = this.getTableauString()
     const output =
       foundationsString + "  |  " + drawPileString + "\n\n" + tableauString
-    this.console.log(output)
+    this.gameConsole.log(output)
   }
 
   getTableauString() {
