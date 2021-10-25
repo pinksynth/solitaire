@@ -22,7 +22,7 @@ const newQuietGame = (opts = {}) =>
 
 const setFrontOfDeck = (deck, cardConfigs) => {
   for (const [suit, rank] of cardConfigs.reverse()) {
-    deck.bringCardToFront({ suit, rank })
+    deck.bringCardToTop({ suit, rank })
   }
 
   // console.log("deck.length() ===== FROM setFrontOfDeck", deck.length())
@@ -98,13 +98,7 @@ test("can render the draw pile properly", () => {
   }
 })
 
-// test("has 'start' function and 'availableMoves' functions", () => {
-//   const game = newQuietGame()
-//   game.start()
-//   game.availableMoves()
-// })
-
-test("availableMoves allows user to stack red card X on black card X+1", () => {
+xtest("availableMoves allows user to stack red card X on black card X+1", () => {
   const deck = setFrontOfDeck(new Deck(), [
     // This is the sole, face up card in tableau pile 1 (leftmost)
     // This will be placed on top of the Four of Diamonds
@@ -118,8 +112,12 @@ test("availableMoves allows user to stack red card X on black card X+1", () => {
 
   const game = new SolitaireGame({ deck })
 
-  console.log("game.deck", game.deck)
-  console.log("game.drawPile", game.drawPile)
-
   game.start()
+  game.displayGame()
+  // We assert about the first (leftmost) available move because we don't know if the rest of the tableau (piles 3-7) has other available moves.
+  expect(game.availableMoves()[0]).toEqual({
+    from: { pile: "Tableau 1", card: " 3S" },
+    to: { pile: "Tableau 2" },
+    label: "Move 3 of Spades to Tableau 2",
+  })
 })

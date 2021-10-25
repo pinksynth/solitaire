@@ -8,12 +8,12 @@ test("contains 52 cards", () => {
 test("allows cards to be brought to the top", () => {
   const deck = new Deck()
   deck.shuffle()
-  deck.bringCardToFront({ suit: DIAMOND, rank: FIVE })
-  deck.bringCardToFront({ suit: CLUB, rank: JACK })
-  deck.bringCardToFront({ suit: HEART, rank: TWO })
+  deck.bringCardToTop({ suit: DIAMOND, rank: FIVE })
+  deck.bringCardToTop({ suit: CLUB, rank: JACK })
+  deck.bringCardToTop({ suit: HEART, rank: TWO })
   expect(deck.cards).toHaveProperty("length", 52)
-  const [a, b, c] = deck.cards
-  expect(a.getShortName()).toBe(" 2H")
-  expect(b.getShortName()).toBe("11C")
-  expect(c.getShortName()).toBe(" 5D")
+
+  expect(deck.cards[51].getShortName()).toBe(" 2H")
+  expect(deck.cards[50].getShortName()).toBe("11C")
+  expect(deck.cards[49].getShortName()).toBe(" 5D")
 })

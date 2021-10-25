@@ -9,7 +9,8 @@ class SolitaireGame {
     this.deck = deck || new Deck()
     this.foundations = this.generateFoundations()
     this.tableau = this.generateTableau()
-    this.deck.shuffle()
+    // Only shuffle the deck if a specific deck has not been provided
+    if (!deck) this.deck.shuffle()
 
     this.drawPile = new Stack({ cards: this.deck.cards })
     this.showRowNumber = !!showRowNumber
@@ -26,7 +27,11 @@ class SolitaireGame {
     this.displayGame()
   }
 
-  availableMoves() {}
+  availableMoves() {
+    const movables = []
+    movables.push(this.drawPile.peek())
+    console.log("movables", movables)
+  }
 
   generateFoundations() {
     return this.generate(4, () => new Stack())

@@ -21,11 +21,11 @@ class Deck {
     shuffle(this.cards)
   }
 
-  bringCardToFront({ suit, rank }) {
+  bringCardToTop({ suit, rank }) {
     const cardIdx = this.findCardIndex({ suit, rank })
-    if (cardIdx === -1) return false
+    if (cardIdx === 51) return false
     const [card] = this.cards.splice(cardIdx, 1)
-    this.cards = [card, ...this.cards]
+    this.cards = [...this.cards, card]
     return true
   }
 
