@@ -1,3 +1,12 @@
+const ANSI = {
+  Reset: "\x1b[0m",
+  Bright: "\x1b[1m",
+
+  FgRed: "\x1b[31m",
+  FgGreen: "\x1b[32m",
+  FgYellow: "\x1b[33m",
+}
+
 const shuffle = (array) => {
   var m = array.length,
     t,
@@ -17,4 +26,4 @@ const shuffle = (array) => {
   return array
 }
 
-module.exports = { shuffle }
+module.exports = { shuffle, ANSI }

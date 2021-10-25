@@ -1,6 +1,8 @@
+const { RED } = require("./constants")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
+const { ANSI } = require("./util")
 
 const STR_TABLEAU = "Tableau"
 const STR_FOUNDATION = "Foundation"
@@ -180,6 +182,14 @@ class SolitaireGame {
     this.gameConsole.log(output)
   }
 
+  getANSICardShortName(card) {
+    if (card.getColor() === RED) {
+      return ANSI.FgRed + card.getShortName() + ANSI.Reset
+    } else {
+      return card.getShortName()
+    }
+  }
+
   getTableauString() {
     // At most we can have 6 face down cards and a full suit (13 cards) on top.
     const BOARD_HEIGHT = 20
@@ -189,7 +199,7 @@ class SolitaireGame {
       const tableauPile = this.tableau[tableauIdx]
       tableuPileCards[tableauIdx] = []
       tableauPile.faceUpStack.cards.forEach((c) =>
-        tableuPileCards[tableauIdx].push(c.getShortName())
+        tableuPileCards[tableauIdx].push(this.getANSICardShortName(c))
       )
       tableauPile.faceDownStack.cards.forEach(() =>
         tableuPileCards[tableauIdx].push(" x ")
@@ -212,20 +222,25 @@ class SolitaireGame {
     return strOutput
   }
 
-  getFoundationsString() {
+  getFoundationsString(color = true) {
     let strOutput = ""
     this.foundations.forEach((f) => {
       const card = f.peek()
-      if (card) strOutput += card.getShortName() + " "
-      else strOutput += "   "
+      if (card) {
+        const name = color
+          ? this.getANSICardShortName(card)
+          : card.getShortName()
+        strOutput += name + " "
+      } else strOutput += "   "
     })
     return strOutput
   }
 
-  getDrawPileString() {
+  getDrawPileString(color = true) {
     const card = this.drawPile.peek()
     if (!card) return "   "
-    return card.getShortName()
+    const name = color ? this.getANSICardShortName(card) : card.getShortName()
+    return name
   }
 }
 

@@ -52,7 +52,7 @@ test("starts the game with four empty foundations", () => {
 test("can render foundations properly", () => {
   const assertionConfigs = [
     {
-      expectedString: " 1H  1D  1S  1C ",
+      expectedString: "A♥︎ A♦︎ A♠︎ A♣︎ ",
       cards: [
         [HEART, ACE],
         [DIAMOND, ACE],
@@ -61,7 +61,7 @@ test("can render foundations properly", () => {
       ],
     },
     {
-      expectedString: "11C    13S  7H ",
+      expectedString: "J♣︎    K♠︎ 7♥︎ ",
       cards: [[CLUB, JACK], [], [SPADE, KING], [HEART, SEVEN]],
     },
   ]
@@ -75,14 +75,14 @@ test("can render foundations properly", () => {
       foundations.push(new Stack({ cards: stackCards }))
     }
     game.foundations = foundations
-    expect(game.getFoundationsString()).toBe(expectedString)
+    expect(game.getFoundationsString(false)).toBe(expectedString)
   }
 })
 
 test("can render the draw pile properly", () => {
   const assertionConfigs = [
     {
-      expectedString: "11H",
+      expectedString: "J♥︎",
       cards: [
         [HEART, JACK],
         [DIAMOND, FOUR],
@@ -94,7 +94,7 @@ test("can render the draw pile properly", () => {
     const game = newQuietGame()
     const stackCards = cards.map(([suit, rank]) => new Card({ rank, suit }))
     game.drawPile = new Stack({ cards: stackCards })
-    expect(game.getDrawPileString()).toBe(expectedString)
+    expect(game.getDrawPileString(false)).toBe(expectedString)
   }
 })
 

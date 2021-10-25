@@ -20,10 +20,7 @@ class Card {
   }
 
   getShortName() {
-    return `${this.rank.toString().padStart(2, " ")}${this.getSuitName().substr(
-      0,
-      1
-    )}`
+    return `${this.getOrdinalName().substr(0, 1)}${this.getSuitSymbol()}`
   }
 
   getName() {
@@ -55,6 +52,19 @@ class Card {
         return "Clubs"
       case SPADE:
         return "Spades"
+    }
+  }
+
+  getSuitSymbol() {
+    switch (this.suit) {
+      case HEART:
+        return "♥︎"
+      case DIAMOND:
+        return "♦︎"
+      case CLUB:
+        return "♣︎"
+      case SPADE:
+        return "♠︎"
     }
   }
 

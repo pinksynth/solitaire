@@ -13,7 +13,7 @@ test("allows cards to be brought to the top", () => {
   deck.bringCardToTop({ suit: HEART, rank: TWO })
   expect(deck.cards).toHaveProperty("length", 52)
 
-  expect(deck.cards[51].getShortName()).toBe(" 2H")
-  expect(deck.cards[50].getShortName()).toBe("11C")
-  expect(deck.cards[49].getShortName()).toBe(" 5D")
+  expect(deck.cards[51].getShortName()).toBe("2♥︎")
+  expect(deck.cards[50].getShortName()).toBe("J♣︎")
+  expect(deck.cards[49].getShortName()).toBe("5♦︎")
 })
