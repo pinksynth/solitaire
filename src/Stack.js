@@ -3,11 +3,16 @@ const Card = require("./Card")
 class Stack {
   constructor({ cards, faceUp } = {}) {
     this.cards = cards ? [...cards] : []
+
     if (this.cards.some((c) => !(c instanceof Card))) {
       throw new Error(
         'Stack constructor expected "cards" to be an array of Cards.'
       )
     }
+
+    // Allow for-of for Stacks. There's probably a less ugly way...?
+    this[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(this.cards)
+
     this.faceUp = faceUp === undefined ? true : faceUp
   }
 
@@ -42,4 +47,5 @@ class Stack {
     return this.cards.map(...mapArgs)
   }
 }
+
 module.exports = Stack

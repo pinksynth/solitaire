@@ -98,7 +98,7 @@ test("can render the draw pile properly", () => {
   }
 })
 
-xtest("availableMoves allows user to stack red card X on black card X+1", () => {
+test("availableMoves allows user to stack red card X on black card X+1", () => {
   const deck = setFrontOfDeck(new Deck(), [
     // This is the sole, face up card in tableau pile 1 (leftmost)
     // This will be placed on top of the Four of Diamonds
@@ -116,8 +116,14 @@ xtest("availableMoves allows user to stack red card X on black card X+1", () => 
   game.displayGame()
   // We assert about the first (leftmost) available move because we don't know if the rest of the tableau (piles 3-7) has other available moves.
   expect(game.availableMoves()[0]).toEqual({
-    from: { pile: "Tableau 1", card: " 3S" },
-    to: { pile: "Tableau 2" },
-    label: "Move 3 of Spades to Tableau 2",
+    from: {
+      pile: { kind: "Tableau", order: 1 },
+      card: new Card({ rank: 3, suit: 3 }),
+    },
+    to: {
+      pile: { kind: "Tableau", order: 2 },
+      card: new Card({ rank: 4, suit: 2 }),
+    },
+    label: "Move 3 of Spades to 4 of Diamonds",
   })
 })

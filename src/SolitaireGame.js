@@ -2,6 +2,10 @@ const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
 
+const STR_TABLEAU = "Tableau"
+const STR_FOUNDATION = "Foundation"
+const STR_DRAW_PILE = "Draw Pile"
+
 class SolitaireGame {
   constructor({ deck, gameConsole = globalThis.console, showRowNumber } = {}) {
     this.gameConsole = gameConsole
@@ -27,10 +31,119 @@ class SolitaireGame {
     this.displayGame()
   }
 
-  availableMoves() {
+  // Get a list of all cards that could be moved if an eligible place was found
+  __getMovables() {
     const movables = []
-    movables.push(this.drawPile.peek())
-    console.log("movables", movables)
+
+    // First potential move is from the top of the draw pile
+    const drawPileCard = this.drawPile.peek()
+    if (drawPileCard)
+      movables.push({
+        pile: { kind: STR_DRAW_PILE, order: 0 },
+        card: drawPileCard,
+      })
+
+    // Other potential moves may be at the tops of foundations
+    let order = 1
+    let kind = STR_FOUNDATION
+    for (const stack of this.foundations) {
+      const card = stack.peek()
+      if (card) movables.push({ pile: { kind, order }, card })
+      order++
+    }
+
+    // All face-up cards in the tableau are potential moves
+    order = 1
+    kind = STR_TABLEAU
+    for (const tableauPile of this.tableau) {
+      for (const card of tableauPile.faceUpStack) {
+        movables.push({ pile: { kind, order }, card })
+      }
+      order++
+    }
+
+    return movables
+  }
+
+  __getMove({ from, to }) {
+    return {
+      from,
+      to,
+      label: `Move ${from.card.getName()} to ${to.card.getName()}`,
+    }
+  }
+
+  __getEligiblePlaces() {
+    const eligiblePlaces = []
+
+    // Foundations are always placeable cards (except Kings)
+    let order = 1
+    let kind = STR_FOUNDATION
+    for (const stack of this.foundations) {
+      const card = stack.peek()
+      if (card) eligiblePlaces.push({ pile: { kind, order }, card })
+      order++
+    }
+
+    // Face-up cards which are at the bottom of the tableau pile are always placeable
+    order = 1
+    kind = STR_TABLEAU
+    for (const tableauPile of this.tableau) {
+      for (const card of tableauPile.faceUpStack) {
+        eligiblePlaces.push({ pile: { kind, order }, card })
+      }
+      order++
+    }
+
+    return eligiblePlaces
+  }
+
+  availableMoves() {
+    const moves = []
+    const movables = this.__getMovables()
+    const eligiblePlaces = this.__getEligiblePlaces()
+    for (const movable of movables) {
+      const {
+        pile: { kind: movableKind, order: movableOrder },
+        card: movableCard,
+      } = movable
+      for (const eligiblePlace of eligiblePlaces) {
+        const {
+          pile: { kind: eligiblePlaceKind, order: eligiblePlaceOrder },
+          card: eligiblePlaceCard,
+        } = eligiblePlace
+        const move = this.__getMove({
+          from: movable,
+          to: eligiblePlace,
+        })
+        if (movableCard.isSameCard(eligiblePlaceCard)) continue
+        // Can never move a card from the foundations to another place in the foundations.
+        if (
+          movableKind === STR_FOUNDATION &&
+          eligiblePlaceKind === STR_FOUNDATION
+        ) {
+          continue
+        }
+        // If moving a card to the foundations...
+        else if (eligiblePlaceKind === STR_FOUNDATION) {
+          // The move is eligible if the suits are the same and the card moving is 1 greater than the receiving stack
+          if (
+            movableCard.suit === eligiblePlaceCard.suit &&
+            movableCard.rank === eligiblePlaceCard.rank + 1
+          ) {
+            moves.push(move)
+          }
+        } else if (eligiblePlaceKind === STR_TABLEAU) {
+          if (
+            movableCard.getColor() !== eligiblePlaceCard.getColor() &&
+            movableCard.rank === eligiblePlaceCard.rank - 1
+          ) {
+            moves.push(move)
+          }
+        }
+      }
+    }
+    return moves
   }
 
   generateFoundations() {

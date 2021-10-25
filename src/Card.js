@@ -1,3 +1,5 @@
+const inspect = Symbol.for("nodejs.util.inspect.custom")
+
 const {
   ACE,
   BLACK,
@@ -59,6 +61,14 @@ class Card {
   getColor() {
     if (this.suit === HEART || this.suit === DIAMOND) return RED
     else return BLACK
+  }
+
+  isSameCard({ suit, rank }) {
+    return suit === this.suit && rank === this.rank
+  }
+
+  [inspect]() {
+    return this.getName()
   }
 }
 
