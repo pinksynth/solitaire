@@ -32,9 +32,14 @@ class Stack {
   }
 
   push(cardsOrStack) {
-    let cards = cardsOrStack
-    if (cardsOrStack instanceof Stack) cards = cardsOrStack.cards
-    this.cards.push(cardsOrStack)
+    const cards =
+      cardsOrStack instanceof Stack ? cardsOrStack.cards : cardsOrStack
+    this.cards = [...this.cards, ...cards]
+    return this.cards
+  }
+
+  map(...mapArgs) {
+    return this.cards.map(...mapArgs)
   }
 }
 module.exports = Stack

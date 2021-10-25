@@ -29,6 +29,7 @@ class SolitaireGame {
 
   async play() {
     this.console.clear()
+    // this.foundations[0].push()
     this.displayGame()
     // inquirer.prompt([{ type: 'input' }])
   }
