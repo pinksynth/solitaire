@@ -1,4 +1,4 @@
-const { RED } = require("./constants")
+const { RED, ACE, KING } = require("./constants")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
@@ -68,10 +68,13 @@ class SolitaireGame {
   }
 
   __getMove({ from, to }) {
+    const destination = to.card
+      ? to.card.getName()
+      : to.pile.kind + " " + to.pile.order
     return {
       from,
       to,
-      label: `Move ${from.card.getName()} to ${to.card.getName()}`,
+      label: `Move ${from.card.getName()} to ${destination}`,
     }
   }
 
@@ -82,8 +85,11 @@ class SolitaireGame {
     let order = 1
     let kind = STR_FOUNDATION
     for (const stack of this.foundations) {
-      const card = stack.peek()
-      if (card) eligiblePlaces.push({ pile: { kind, order }, card })
+      eligiblePlaces.push({
+        pile: { kind, order },
+        // If the foundation is empty, the card will be undefined, which is desired.
+        card: stack.peek(),
+      })
       order++
     }
 
@@ -93,6 +99,11 @@ class SolitaireGame {
     for (const tableauPile of this.tableau) {
       for (const card of tableauPile.faceUpStack) {
         eligiblePlaces.push({ pile: { kind, order }, card })
+      }
+
+      // If there are no cards in the tableau pile, it is an eligible move (for a King)
+      if (tableauPile.isEmpty()) {
+        eligiblePlaces.push({ pile: { kind, order }, card: undefined })
       }
       order++
     }
@@ -104,21 +115,30 @@ class SolitaireGame {
     const moves = []
     const movables = this.__getMovables()
     const eligiblePlaces = this.__getEligiblePlaces()
+
+    // Iterate through cards which could be moved to others
     for (const movable of movables) {
       const {
-        pile: { kind: movableKind, order: movableOrder },
+        pile: { kind: movableKind },
         card: movableCard,
       } = movable
+
+      // For each card, iterate through places onto which cards could be moved
       for (const eligiblePlace of eligiblePlaces) {
         const {
-          pile: { kind: eligiblePlaceKind, order: eligiblePlaceOrder },
+          pile: { kind: eligiblePlaceKind },
           card: eligiblePlaceCard,
         } = eligiblePlace
         const move = this.__getMove({
           from: movable,
           to: eligiblePlace,
         })
-        if (movableCard.isSameCard(eligiblePlaceCard)) continue
+        let moveIsEligible = false
+        // Don't compare card to self.
+        if (eligiblePlaceCard && movableCard.isSameCard(eligiblePlaceCard)) {
+          continue
+        }
+
         // Can never move a card from the foundations to another place in the foundations.
         if (
           movableKind === STR_FOUNDATION &&
@@ -126,23 +146,41 @@ class SolitaireGame {
         ) {
           continue
         }
+
         // If moving a card to the foundations...
         else if (eligiblePlaceKind === STR_FOUNDATION) {
           // The move is eligible if the suits are the same and the card moving is 1 greater than the receiving stack
-          if (
+          const movingToExistingFoundationStack =
+            eligiblePlaceCard &&
             movableCard.suit === eligiblePlaceCard.suit &&
             movableCard.rank === eligiblePlaceCard.rank + 1
-          ) {
-            moves.push(move)
+
+          // The move is eligible if we're moving an ace onto an empty foundation.
+          const movingAceOntoEmptyFoundation =
+            eligiblePlaceCard === undefined && movableCard.rank === ACE
+
+          if (movingToExistingFoundationStack || movingAceOntoEmptyFoundation) {
+            moveIsEligible = true
           }
+
+          // Else, if we're moving a card to the tableau
         } else if (eligiblePlaceKind === STR_TABLEAU) {
-          if (
+          // The move is eligible if we're stacking an inferior rank card (i.e., Black 4) onto a superior rank card of another color (i.e., Red 5).
+          const movingToExistingTableauStack =
+            eligiblePlaceCard &&
             movableCard.getColor() !== eligiblePlaceCard.getColor() &&
             movableCard.rank === eligiblePlaceCard.rank - 1
-          ) {
-            moves.push(move)
+
+          // The move is eligible if we're putting a king on an empty tableau spot.
+          const movingKingOntoEmptyTableau =
+            eligiblePlaceCard === undefined && movableCard.rank === KING
+
+          if (movingToExistingTableauStack || movingKingOntoEmptyTableau) {
+            moveIsEligible = true
           }
         }
+
+        if (moveIsEligible) moves.push(move)
       }
     }
     return moves

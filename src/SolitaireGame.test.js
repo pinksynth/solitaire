@@ -21,7 +21,7 @@ const newQuietGame = (opts = {}) =>
   new SolitaireGame({ console: mockConsole, ...opts })
 
 const setFrontOfDeck = (deck, cardConfigs) => {
-  for (const [suit, rank] of cardConfigs.reverse()) {
+  for (const [rank, suit] of cardConfigs.reverse()) {
     deck.bringCardToTop({ suit, rank })
   }
 
@@ -98,32 +98,55 @@ test("can render the draw pile properly", () => {
   }
 })
 
-test("availableMoves allows user to stack red card X on black card X+1", () => {
-  const deck = setFrontOfDeck(new Deck(), [
-    // This is the sole, face up card in tableau pile 1 (leftmost)
-    // This will be placed on top of the Four of Diamonds
-    [SPADE, THREE],
-    // This is the face down card in tableau pile 2. Ignore this.
-    [CLUB, TEN],
-    // This is the face up card in tableau pile 2
-    // The Three of Spades will be placed atop this.
-    [DIAMOND, FOUR],
-  ])
+const testAvailableMoves = ({ testName, getDeck, move }) =>
+  test("availableMoves " + testName, () => {
+    const deck = getDeck()
+    const game = new SolitaireGame({ deck })
 
-  const game = new SolitaireGame({ deck })
+    game.start()
+    game.displayGame()
+    // Usually, our desired move will not be the only available move.
+    expect(game.availableMoves()).toContainEqual(move)
+  })
 
-  game.start()
-  game.displayGame()
-  // We assert about the first (leftmost) available move because we don't know if the rest of the tableau (piles 3-7) has other available moves.
-  expect(game.availableMoves()[0]).toEqual({
+testAvailableMoves({
+  testName: "allows user to stack red card X on black card X+1",
+  getDeck: () =>
+    setFrontOfDeck(new Deck(), [
+      // This is the sole, face up card in tableau pile 1 (leftmost)
+      // This will be placed on top of the Four of Diamonds
+      [THREE, SPADE],
+      // This is the face down card in tableau pile 2. Ignore this.
+      [TEN, CLUB],
+      // This is the face up card in tableau pile 2
+      // The Three of Spades will be placed atop this.
+      [FOUR, DIAMOND],
+    ]),
+  move: {
     from: {
       pile: { kind: "Tableau", order: 1 },
-      card: new Card({ rank: 3, suit: 3 }),
+      card: new Card({ rank: THREE, suit: SPADE }),
     },
     to: {
       pile: { kind: "Tableau", order: 2 },
-      card: new Card({ rank: 4, suit: 2 }),
+      card: new Card({ rank: FOUR, suit: DIAMOND }),
     },
     label: "Move 3 of Spades to 4 of Diamonds",
-  })
+  },
+})
+
+testAvailableMoves({
+  testName: "allows user to place an ace on an empty foundation",
+  getDeck: () => setFrontOfDeck(new Deck(), [[ACE, SPADE]]),
+  move: {
+    from: {
+      pile: { kind: "Tableau", order: 1 },
+      card: new Card({ rank: ACE, suit: SPADE }),
+    },
+    to: {
+      pile: { kind: "Foundation", order: 1 },
+      card: undefined,
+    },
+    label: "Move Ace of Spades to Foundation 1",
+  },
 })
