@@ -12,13 +12,16 @@ const {
   SPADE,
   TEN,
   THREE,
+  QUEEN,
+  TWO,
+  FIVE,
 } = require("./constants")
 const Deck = require("./Deck")
 const SolitaireGame = require("./SolitaireGame")
 const Stack = require("./Stack")
 
 const newQuietGame = (opts = {}) =>
-  new SolitaireGame({ console: mockConsole, ...opts })
+  new SolitaireGame({ gameConsole: mockConsole, ...opts })
 
 const setFrontOfDeck = (deck, cardConfigs) => {
   for (const [rank, suit] of cardConfigs.reverse()) {
@@ -47,6 +50,27 @@ test("starts the game with four empty foundations", () => {
   for (const foundationPile of game.foundations) {
     expect(foundationPile.size()).toBe(0)
   }
+})
+
+test("has a `countCardsInTableau` function", () => {
+  const game = newQuietGame()
+  game.start()
+  expect(game.drawPile.size()).toBe(24)
+  expect(game.countCardsInTableau()).toBe(28)
+})
+
+xtest("allows game to be started with foundations already loaded to a given rank", () => {
+  // With these 31 cards in the foundations, there will be 21 cards remaining in play (drawpile and tableau).
+  const game = newQuietGame({
+    loadFoundations: {
+      [SPADE]: KING,
+      [CLUB]: QUEEN,
+      [DIAMOND]: FIVE,
+      [HEART]: ACE,
+    },
+  })
+  game.start()
+  expect(game.countCardsInTableau() + game.drawPile.size()).toBe(24)
 })
 
 test("can render foundations properly", () => {
@@ -84,8 +108,8 @@ test("can render the draw pile properly", () => {
     {
       expectedString: "J♥︎",
       cards: [
-        [HEART, JACK],
         [DIAMOND, FOUR],
+        [HEART, JACK],
       ],
     },
     { expectedString: "   ", cards: [] },
@@ -98,10 +122,26 @@ test("can render the draw pile properly", () => {
   }
 })
 
+test("can use performMove to move an ace from tableau to foundations", () => {
+  const deck = setFrontOfDeck(new Deck(), [[ACE, SPADE]])
+  const game = newQuietGame({ deck })
+  game.start()
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === ACE && move.from?.card.suit === SPADE
+    )
+  game.performMove(moveIdx)
+  expect(game.foundations[0].peek()).toEqual(
+    new Card({ rank: ACE, suit: SPADE })
+  )
+  expect(game.tableau[0].totalSize()).toBe(0)
+})
+
 const testAvailableMoves = ({ testName, getDeck, move }) =>
   test("availableMoves " + testName, () => {
     const deck = getDeck()
-    const game = new SolitaireGame({ deck })
+    const game = newQuietGame({ deck })
 
     game.start()
     game.displayGame()
@@ -126,6 +166,7 @@ testAvailableMoves({
     from: {
       pile: { kind: "Tableau", order: 1 },
       card: new Card({ rank: THREE, suit: SPADE }),
+      isTopOfStack: true,
     },
     to: {
       pile: { kind: "Tableau", order: 2 },
@@ -142,6 +183,7 @@ testAvailableMoves({
     from: {
       pile: { kind: "Tableau", order: 1 },
       card: new Card({ rank: ACE, suit: SPADE }),
+      isTopOfStack: true,
     },
     to: {
       pile: { kind: "Foundation", order: 1 },

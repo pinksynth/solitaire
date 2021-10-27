@@ -1,5 +1,5 @@
 const Card = require("./Card")
-const { DIAMOND, CLUB, HEART, JACK, SPADE, VALUES } = require("./constants")
+const { DIAMOND, CLUB, HEART, SPADE, VALUES } = require("./constants")
 const { shuffle } = require("./util")
 
 class Deck {

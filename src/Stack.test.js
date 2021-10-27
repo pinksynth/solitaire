@@ -21,3 +21,9 @@ test("allows cards to be placed onto the top of the stack", () => {
   stack.push(new Stack({ cards: [new Card({ rank: 9, suit: DIAMOND })] }))
   expect(stack.map((c) => c.rank).join(" ")).toBe("3 4 5 6 8 9")
 })
+
+test("allows the top card to be peeked", () => {
+  const cards = [1, 2, 3].map((rank) => new Card({ rank, suit: DIAMOND }))
+  const stack = new Stack({ cards })
+  expect(stack.peek()).toEqual(new Card({ rank: 3, suit: DIAMOND }))
+})

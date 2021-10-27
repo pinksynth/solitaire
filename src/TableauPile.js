@@ -7,7 +7,11 @@ class TableauPile {
   }
 
   isEmpty() {
-    return this.faceDownStack.size === 0 && this.faceUpStack.size === 0
+    return this.totalSize() === 0
+  }
+
+  totalSize() {
+    return this.faceDownStack.size() + this.faceUpStack.size()
   }
 }
 

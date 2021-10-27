@@ -29,22 +29,48 @@ class Stack {
   }
 
   peek() {
-    return this.cards[0]
+    return this.cards[this.cards.length - 1]
   }
 
   size() {
     return this.cards.length
   }
 
-  push(cardsOrStack) {
-    const cards =
-      cardsOrStack instanceof Stack ? cardsOrStack.cards : cardsOrStack
+  push(pushable) {
+    let cards
+    if (pushable instanceof Stack) {
+      cards = pushable.cards
+    } else if (Array.isArray(pushable)) {
+      cards = pushable
+    } else if (pushable instanceof Card) {
+      cards = [pushable]
+    }
     this.cards = [...this.cards, ...cards]
     return this.cards
   }
 
   map(...mapArgs) {
     return this.cards.map(...mapArgs)
+  }
+
+  // TODO: Deck and Stack both have this and it works the same way, so it should probably be inherited.
+  bringCardToTop({ suit, rank }) {
+    const cardIdx = this.findCardIndex({ suit, rank })
+    // Card does not exist in this Stack
+    if (cardIdx === -1) return false
+    // Card is already at top
+    if (cardIdx === this.cards.length - 1) return false
+    const [card] = this.cards.splice(cardIdx, 1)
+    this.cards = [...this.cards, card]
+    return true
+  }
+
+  findCardIndex({ suit, rank }) {
+    return this.cards.findIndex((c) => c.suit === suit && c.rank === rank)
+  }
+
+  getCard(index) {
+    return this.cards[index]
   }
 }
 

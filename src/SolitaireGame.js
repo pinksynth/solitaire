@@ -1,4 +1,5 @@
-const { RED, ACE, KING } = require("./constants")
+const Card = require("./Card")
+const { RED, ACE, KING, SPADE, HEART, JACK } = require("./constants")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
@@ -9,9 +10,14 @@ const STR_FOUNDATION = "Foundation"
 const STR_DRAW_PILE = "Draw Pile"
 
 class SolitaireGame {
-  constructor({ deck, gameConsole = globalThis.console, showRowNumber } = {}) {
+  constructor({
+    deck,
+    gameConsole = globalThis.console,
+    loadFoundations: foundationsConfig,
+    showRowNumber,
+  } = {}) {
+    this.init = { foundationsConfig }
     this.gameConsole = gameConsole
-
     this.deck = deck || new Deck()
     this.foundations = this.generateFoundations()
     this.tableau = this.generateTableau()
@@ -23,6 +29,9 @@ class SolitaireGame {
   }
 
   start() {
+    const foundationsConfig = this.init.foundationsConfig
+    if (foundationsConfig) this.loadFoundationsFromConfig(foundationsConfig)
+
     this.dealTableau()
     // this.play()
   }
@@ -58,8 +67,14 @@ class SolitaireGame {
     order = 1
     kind = STR_TABLEAU
     for (const tableauPile of this.tableau) {
-      for (const card of tableauPile.faceUpStack) {
-        movables.push({ pile: { kind, order }, card })
+      for (
+        let cardIdx = 0;
+        cardIdx < tableauPile.faceUpStack.size();
+        cardIdx++
+      ) {
+        const card = tableauPile.faceUpStack.getCard(cardIdx)
+        const isTopOfStack = cardIdx === tableauPile.faceUpStack.size() - 1
+        movables.push({ pile: { kind, order }, card, isTopOfStack })
       }
       order++
     }
@@ -111,6 +126,20 @@ class SolitaireGame {
     return eligiblePlaces
   }
 
+  loadFoundationsFromConfig(foundationsConfig) {
+    console.log("this.drawPile.size()", this.drawPile.size())
+    for (const [strSuit, foundationRank] of Object.entries(foundationsConfig)) {
+      const suit = parseInt(strSuit)
+      for (let rank = 1; rank <= foundationRank; rank++) {
+        console.log("---------------------\n---------------------")
+        console.log("given card", new Card({ suit, rank }))
+        this.drawPile.bringCardToTop({ suit, rank })
+        // The available move will be to move the next card (starting with ace) to the eligible foundation.
+        this.performMove(0)
+      }
+    }
+  }
+
   availableMoves() {
     const moves = []
     const movables = this.__getMovables()
@@ -121,6 +150,7 @@ class SolitaireGame {
       const {
         pile: { kind: movableKind },
         card: movableCard,
+        isTopOfStack,
       } = movable
 
       // For each card, iterate through places onto which cards could be moved
@@ -159,7 +189,11 @@ class SolitaireGame {
           const movingAceOntoEmptyFoundation =
             eligiblePlaceCard === undefined && movableCard.rank === ACE
 
-          if (movingToExistingFoundationStack || movingAceOntoEmptyFoundation) {
+          // A move from the tableau is only eligible to move to the foundations if it was the top of its stack.
+          if (
+            isTopOfStack &&
+            (movingToExistingFoundationStack || movingAceOntoEmptyFoundation)
+          ) {
             moveIsEligible = true
           }
 
@@ -186,6 +220,45 @@ class SolitaireGame {
     return moves
   }
 
+  performMove(moveIdx) {
+    const { from, to } = this.availableMoves()[moveIdx]
+    const { pile: fromPile, card: fromCard } = from
+    const { pile: toPile, card: toCard } = to
+    // console.log("from", from)
+    // console.log("to", to)
+    if (toPile.kind === STR_FOUNDATION) {
+      if (fromPile.kind === STR_TABLEAU) {
+        // Store tableau pile as variable
+        const tableauStack = this.getFaceupTableauStack(fromPile.order)
+        // Store foundation as variable
+        const foundationStack = this.getFoundationStack(toPile.order)
+        // Take from tableau pile
+        const card = tableauStack.take(1)
+        // Place on foundation
+        foundationStack.push(card)
+      }
+    }
+    // SAMMY! This is where the magic happens. Perform the move here. Start with a move from Tableau to Foundations (See failing test)
+  }
+
+  getFaceupTableauStack(order) {
+    const index = order - 1
+    return this.tableau[index].faceUpStack
+  }
+
+  getFoundationStack(order) {
+    const index = order - 1
+    return this.foundations[index]
+  }
+
+  countCardsInTableau() {
+    let count = 0
+    for (const tableauPile of this.tableau) {
+      count += tableauPile.totalSize()
+    }
+    return count
+  }
+
   generateFoundations() {
     return this.generate(4, () => new Stack())
   }
@@ -201,8 +274,6 @@ class SolitaireGame {
   }
 
   dealTableau() {
-    // gameConsole.log("this.drawPile", this.drawPile)
-    // gameConsole.log("this.drawPile.size()", this.drawPile.size())
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const faceDownCards = this.drawPile.take(tableauIdx)
       const oneFaceUpCard = this.drawPile.take(1)
