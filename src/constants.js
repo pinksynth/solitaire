@@ -8,6 +8,11 @@ const HEART = 1,
 const RED = 1,
   BLACK = 2
 
+// Strings
+const STR_TABLEAU = "Tableau"
+const STR_FOUNDATION = "Foundation"
+const STR_DRAW_PILE = "Draw Pile"
+
 // Values (This is not necessarily the same for all games)
 const ACE = 1,
   TWO = 2,
@@ -60,4 +65,7 @@ module.exports = {
   QUEEN,
   KING,
   VALUES,
+  STR_TABLEAU,
+  STR_FOUNDATION,
+  STR_DRAW_PILE,
 }

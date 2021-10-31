@@ -1,13 +1,16 @@
+const {
+  RED,
+  ACE,
+  KING,
+  STR_TABLEAU,
+  STR_FOUNDATION,
+  STR_DRAW_PILE,
+} = require("./constants")
 const Card = require("./Card")
-const { RED, ACE, KING, SPADE, HEART, JACK } = require("./constants")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
 const { ANSI } = require("./util")
-
-const STR_TABLEAU = "Tableau"
-const STR_FOUNDATION = "Foundation"
-const STR_DRAW_PILE = "Draw Pile"
 
 class SolitaireGame {
   constructor({
@@ -19,8 +22,8 @@ class SolitaireGame {
     this.init = { foundationsConfig }
     this.gameConsole = gameConsole
     this.deck = deck || new Deck()
-    this.foundations = this.generateFoundations()
-    this.tableau = this.generateTableau()
+    this.foundations = this.#generateFoundations()
+    this.tableau = this.#generateTableau()
     // Only shuffle the deck if a specific deck has not been provided
     if (!deck) this.deck.shuffle()
 
@@ -30,9 +33,9 @@ class SolitaireGame {
 
   start() {
     const foundationsConfig = this.init.foundationsConfig
-    if (foundationsConfig) this.loadFoundationsFromConfig(foundationsConfig)
+    if (foundationsConfig) this.#loadFoundationsFromConfig(foundationsConfig)
 
-    this.dealTableau()
+    this.#dealTableau()
     // this.play()
   }
 
@@ -42,108 +45,10 @@ class SolitaireGame {
     this.displayGame()
   }
 
-  // Get a list of all cards that could be moved if an eligible place was found
-  __getMovables() {
-    const movables = []
-
-    // First potential move is from the top of the draw pile
-    const drawPileCard = this.drawPile.peek()
-    if (drawPileCard)
-      movables.push({
-        pile: { kind: STR_DRAW_PILE, order: 0 },
-        card: drawPileCard,
-      })
-
-    // Other potential moves may be at the tops of foundations
-    let order = 1
-    let kind = STR_FOUNDATION
-    for (const stack of this.foundations) {
-      const card = stack.peek()
-      if (card) movables.push({ pile: { kind, order }, card })
-      order++
-    }
-
-    // All face-up cards in the tableau are potential moves
-    order = 1
-    kind = STR_TABLEAU
-    for (const tableauPile of this.tableau) {
-      for (
-        let cardIdx = 0;
-        cardIdx < tableauPile.faceUpStack.size();
-        cardIdx++
-      ) {
-        const card = tableauPile.faceUpStack.getCard(cardIdx)
-        const isTopOfStack = cardIdx === tableauPile.faceUpStack.size() - 1
-        movables.push({ pile: { kind, order }, card, isTopOfStack })
-      }
-      order++
-    }
-
-    return movables
-  }
-
-  __getMove({ from, to }) {
-    const destination = to.card
-      ? to.card.getName()
-      : to.pile.kind + " " + to.pile.order
-    return {
-      from,
-      to,
-      label: `Move ${from.card.getName()} to ${destination}`,
-    }
-  }
-
-  __getEligiblePlaces() {
-    const eligiblePlaces = []
-
-    // Foundations are always placeable cards (except Kings)
-    let order = 1
-    let kind = STR_FOUNDATION
-    for (const stack of this.foundations) {
-      eligiblePlaces.push({
-        pile: { kind, order },
-        // If the foundation is empty, the card will be undefined, which is desired.
-        card: stack.peek(),
-      })
-      order++
-    }
-
-    // Face-up cards which are at the bottom of the tableau pile are always placeable
-    order = 1
-    kind = STR_TABLEAU
-    for (const tableauPile of this.tableau) {
-      for (const card of tableauPile.faceUpStack) {
-        eligiblePlaces.push({ pile: { kind, order }, card })
-      }
-
-      // If there are no cards in the tableau pile, it is an eligible move (for a King)
-      if (tableauPile.isEmpty()) {
-        eligiblePlaces.push({ pile: { kind, order }, card: undefined })
-      }
-      order++
-    }
-
-    return eligiblePlaces
-  }
-
-  loadFoundationsFromConfig(foundationsConfig) {
-    console.log("this.drawPile.size()", this.drawPile.size())
-    for (const [strSuit, foundationRank] of Object.entries(foundationsConfig)) {
-      const suit = parseInt(strSuit)
-      for (let rank = 1; rank <= foundationRank; rank++) {
-        console.log("---------------------\n---------------------")
-        console.log("given card", new Card({ suit, rank }))
-        this.drawPile.bringCardToTop({ suit, rank })
-        // The available move will be to move the next card (starting with ace) to the eligible foundation.
-        this.performMove(0)
-      }
-    }
-  }
-
   availableMoves() {
     const moves = []
-    const movables = this.__getMovables()
-    const eligiblePlaces = this.__getEligiblePlaces()
+    const movables = this.#getMovables()
+    const eligiblePlaces = this.#getEligiblePlaces()
 
     // Iterate through cards which could be moved to others
     for (const movable of movables) {
@@ -159,7 +64,7 @@ class SolitaireGame {
           pile: { kind: eligiblePlaceKind },
           card: eligiblePlaceCard,
         } = eligiblePlace
-        const move = this.__getMove({
+        const move = this.#getMove({
           from: movable,
           to: eligiblePlace,
         })
@@ -229,9 +134,9 @@ class SolitaireGame {
     if (toPile.kind === STR_FOUNDATION) {
       if (fromPile.kind === STR_TABLEAU) {
         // Store tableau pile as variable
-        const tableauStack = this.getFaceupTableauStack(fromPile.order)
+        const tableauStack = this.#getFaceupTableauStack(fromPile.order)
         // Store foundation as variable
-        const foundationStack = this.getFoundationStack(toPile.order)
+        const foundationStack = this.#getFoundationStack(toPile.order)
         // Take from tableau pile
         const card = tableauStack.take(1)
         // Place on foundation
@@ -239,16 +144,6 @@ class SolitaireGame {
       }
     }
     // SAMMY! This is where the magic happens. Perform the move here. Start with a move from Tableau to Foundations (See failing test)
-  }
-
-  getFaceupTableauStack(order) {
-    const index = order - 1
-    return this.tableau[index].faceUpStack
-  }
-
-  getFoundationStack(order) {
-    const index = order - 1
-    return this.foundations[index]
   }
 
   countCardsInTableau() {
@@ -259,21 +154,159 @@ class SolitaireGame {
     return count
   }
 
-  generateFoundations() {
-    return this.generate(4, () => new Stack())
+  displayGame() {
+    const drawPileString = this.getDrawPileString()
+    const foundationsString = this.getFoundationsString()
+    const tableauString = this.#getTableauString()
+    const output =
+      foundationsString + "  |  " + drawPileString + "\n\n" + tableauString
+    this.gameConsole.log(output)
   }
 
-  generateTableau() {
-    return this.generate(7, () => new TableauPile())
+  getFoundationsString(color = true) {
+    let strOutput = ""
+    this.foundations.forEach((f) => {
+      const card = f.peek()
+      if (card) {
+        const name = color
+          ? this.#getANSICardShortName(card)
+          : card.getShortName()
+        strOutput += name + " "
+      } else strOutput += "   "
+    })
+    return strOutput
   }
 
-  generate(count, getObj) {
+  getDrawPileString(color = true) {
+    const card = this.drawPile.peek()
+    if (!card) return "   "
+    const name = color ? this.#getANSICardShortName(card) : card.getShortName()
+    return name
+  }
+
+  // Get a list of all cards that could be moved if an eligible place was found
+  #getMovables() {
+    const movables = []
+
+    // First potential move is from the top of the draw pile
+    const drawPileCard = this.drawPile.peek()
+    if (drawPileCard)
+      movables.push({
+        pile: { kind: STR_DRAW_PILE, order: 0 },
+        card: drawPileCard,
+      })
+
+    // Other potential moves may be at the tops of foundations
+    let order = 1
+    let kind = STR_FOUNDATION
+    for (const stack of this.foundations) {
+      const card = stack.peek()
+      if (card) movables.push({ pile: { kind, order }, card })
+      order++
+    }
+
+    // All face-up cards in the tableau are potential moves
+    order = 1
+    kind = STR_TABLEAU
+    for (const tableauPile of this.tableau) {
+      for (
+        let cardIdx = 0;
+        cardIdx < tableauPile.faceUpStack.size();
+        cardIdx++
+      ) {
+        const card = tableauPile.faceUpStack.getCard(cardIdx)
+        const isTopOfStack = cardIdx === tableauPile.faceUpStack.size() - 1
+        movables.push({ pile: { kind, order }, card, isTopOfStack })
+      }
+      order++
+    }
+
+    return movables
+  }
+
+  #getMove({ from, to }) {
+    const destination = to.card
+      ? to.card.getName()
+      : to.pile.kind + " " + to.pile.order
+    return {
+      from,
+      to,
+      label: `Move ${from.card.getName()} to ${destination}`,
+    }
+  }
+
+  #getEligiblePlaces() {
+    const eligiblePlaces = []
+
+    // Foundations are always placeable cards (except Kings)
+    let order = 1
+    let kind = STR_FOUNDATION
+    for (const stack of this.foundations) {
+      eligiblePlaces.push({
+        pile: { kind, order },
+        // If the foundation is empty, the card will be undefined, which is desired.
+        card: stack.peek(),
+      })
+      order++
+    }
+
+    // Face-up cards which are at the bottom of the tableau pile are always placeable
+    order = 1
+    kind = STR_TABLEAU
+    for (const tableauPile of this.tableau) {
+      for (const card of tableauPile.faceUpStack) {
+        eligiblePlaces.push({ pile: { kind, order }, card })
+      }
+
+      // If there are no cards in the tableau pile, it is an eligible move (for a King)
+      if (tableauPile.isEmpty()) {
+        eligiblePlaces.push({ pile: { kind, order }, card: undefined })
+      }
+      order++
+    }
+
+    return eligiblePlaces
+  }
+
+  #loadFoundationsFromConfig(foundationsConfig) {
+    console.log("this.drawPile.size()", this.drawPile.size())
+    for (const [strSuit, foundationRank] of Object.entries(foundationsConfig)) {
+      const suit = parseInt(strSuit)
+      for (let rank = 1; rank <= foundationRank; rank++) {
+        console.log("---------------------\n---------------------")
+        console.log("given card", new Card({ suit, rank }))
+        this.drawPile.bringCardToTop({ suit, rank })
+        // The available move will be to move the next card (starting with ace) to the eligible foundation.
+        this.performMove(0)
+      }
+    }
+  }
+
+  #getFaceupTableauStack(order) {
+    const index = order - 1
+    return this.tableau[index].faceUpStack
+  }
+
+  #getFoundationStack(order) {
+    const index = order - 1
+    return this.foundations[index]
+  }
+
+  #generateFoundations() {
+    return this.#generate(4, () => new Stack())
+  }
+
+  #generateTableau() {
+    return this.#generate(7, () => new TableauPile())
+  }
+
+  #generate(count, getObj) {
     const objs = []
     for (let obj = 1; obj <= count; obj++) objs.push(getObj())
     return objs
   }
 
-  dealTableau() {
+  #dealTableau() {
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const faceDownCards = this.drawPile.take(tableauIdx)
       const oneFaceUpCard = this.drawPile.take(1)
@@ -282,16 +315,7 @@ class SolitaireGame {
     }
   }
 
-  displayGame() {
-    const drawPileString = this.getDrawPileString()
-    const foundationsString = this.getFoundationsString()
-    const tableauString = this.getTableauString()
-    const output =
-      foundationsString + "  |  " + drawPileString + "\n\n" + tableauString
-    this.gameConsole.log(output)
-  }
-
-  getANSICardShortName(card) {
+  #getANSICardShortName(card) {
     if (card.getColor() === RED) {
       return ANSI.FgRed + card.getShortName() + ANSI.Reset
     } else {
@@ -299,7 +323,7 @@ class SolitaireGame {
     }
   }
 
-  getTableauString() {
+  #getTableauString() {
     // At most we can have 6 face down cards and a full suit (13 cards) on top.
     const BOARD_HEIGHT = 20
     let strOutput = ""
@@ -308,7 +332,7 @@ class SolitaireGame {
       const tableauPile = this.tableau[tableauIdx]
       tableuPileCards[tableauIdx] = []
       tableauPile.faceUpStack.cards.forEach((c) =>
-        tableuPileCards[tableauIdx].push(this.getANSICardShortName(c))
+        tableuPileCards[tableauIdx].push(this.#getANSICardShortName(c))
       )
       tableauPile.faceDownStack.cards.forEach(() =>
         tableuPileCards[tableauIdx].push(" x ")
@@ -329,27 +353,6 @@ class SolitaireGame {
       strOutput += "\n"
     }
     return strOutput
-  }
-
-  getFoundationsString(color = true) {
-    let strOutput = ""
-    this.foundations.forEach((f) => {
-      const card = f.peek()
-      if (card) {
-        const name = color
-          ? this.getANSICardShortName(card)
-          : card.getShortName()
-        strOutput += name + " "
-      } else strOutput += "   "
-    })
-    return strOutput
-  }
-
-  getDrawPileString(color = true) {
-    const card = this.drawPile.peek()
-    if (!card) return "   "
-    const name = color ? this.getANSICardShortName(card) : card.getShortName()
-    return name
   }
 }
 
