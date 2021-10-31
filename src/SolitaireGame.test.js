@@ -28,7 +28,6 @@ const setFrontOfDeck = (deck, cardConfigs) => {
     deck.bringCardToTop({ suit, rank })
   }
 
-  // console.log("deck.length() ===== FROM setFrontOfDeck", deck.length())
   return deck
 }
 
@@ -59,7 +58,7 @@ test("has a `countCardsInTableau` function", () => {
   expect(game.countCardsInTableau()).toBe(28)
 })
 
-xtest("allows game to be started with foundations already loaded to a given rank", () => {
+test("allows game to be started with foundations already loaded to a given rank", () => {
   // With these 31 cards in the foundations, there will be 21 cards remaining in play (drawpile and tableau).
   const game = newQuietGame({
     loadFoundations: {
@@ -70,7 +69,7 @@ xtest("allows game to be started with foundations already loaded to a given rank
     },
   })
   game.start()
-  expect(game.countCardsInTableau() + game.drawPile.size()).toBe(24)
+  expect(game.countCardsInTableau() + game.drawPile.size()).toBe(21)
 })
 
 test("can render foundations properly", () => {
@@ -122,7 +121,7 @@ test("can render the draw pile properly", () => {
   }
 })
 
-test("can use performMove to move an ace from tableau to foundations", () => {
+test("can use `performMove` to move an ace from tableau to foundations", () => {
   const deck = setFrontOfDeck(new Deck(), [[ACE, SPADE]])
   const game = newQuietGame({ deck })
   game.start()

@@ -84,6 +84,12 @@ class SolitaireGame {
 
         // If moving a card to the foundations...
         else if (eligiblePlaceKind === STR_FOUNDATION) {
+          let cardIsEligible = true
+          if (movable.pile.kind === STR_TABLEAU && !isTopOfStack) {
+            // A card cannot be moved from the tableau to the foundation if it is not the top of the stack.
+            cardIsEligible = false
+          }
+
           // The move is eligible if the suits are the same and the card moving is 1 greater than the receiving stack
           const movingToExistingFoundationStack =
             eligiblePlaceCard &&
@@ -96,7 +102,7 @@ class SolitaireGame {
 
           // A move from the tableau is only eligible to move to the foundations if it was the top of its stack.
           if (
-            isTopOfStack &&
+            cardIsEligible &&
             (movingToExistingFoundationStack || movingAceOntoEmptyFoundation)
           ) {
             moveIsEligible = true
@@ -129,17 +135,15 @@ class SolitaireGame {
     const { from, to } = this.availableMoves()[moveIdx]
     const { pile: fromPile, card: fromCard } = from
     const { pile: toPile, card: toCard } = to
-    // console.log("from", from)
-    // console.log("to", to)
     if (toPile.kind === STR_FOUNDATION) {
       if (fromPile.kind === STR_TABLEAU) {
-        // Store tableau pile as variable
         const tableauStack = this.#getFaceupTableauStack(fromPile.order)
-        // Store foundation as variable
         const foundationStack = this.#getFoundationStack(toPile.order)
-        // Take from tableau pile
         const card = tableauStack.take(1)
-        // Place on foundation
+        foundationStack.push(card)
+      } else if (fromPile.kind === STR_DRAW_PILE) {
+        const foundationStack = this.#getFoundationStack(toPile.order)
+        const card = this.drawPile.take(1)
         foundationStack.push(card)
       }
     }
@@ -161,6 +165,8 @@ class SolitaireGame {
     const output =
       foundationsString + "  |  " + drawPileString + "\n\n" + tableauString
     this.gameConsole.log(output)
+
+    return output
   }
 
   getFoundationsString(color = true) {
@@ -269,12 +275,9 @@ class SolitaireGame {
   }
 
   #loadFoundationsFromConfig(foundationsConfig) {
-    console.log("this.drawPile.size()", this.drawPile.size())
     for (const [strSuit, foundationRank] of Object.entries(foundationsConfig)) {
       const suit = parseInt(strSuit)
       for (let rank = 1; rank <= foundationRank; rank++) {
-        console.log("---------------------\n---------------------")
-        console.log("given card", new Card({ suit, rank }))
         this.drawPile.bringCardToTop({ suit, rank })
         // The available move will be to move the next card (starting with ace) to the eligible foundation.
         this.performMove(0)
