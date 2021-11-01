@@ -20,7 +20,7 @@ class Card {
   }
 
   getShortName() {
-    return `${this.getOrdinalName().substr(0, 1)}${this.getSuitSymbol()}`
+    return `${this.getOrdinalName().substr(0, 1)}${this.getSuitSymbol()} `
   }
 
   getName() {

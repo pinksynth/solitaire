@@ -8,6 +8,7 @@ const {
   HEART,
   JACK,
   KING,
+  SIX,
   SEVEN,
   SPADE,
   TEN,
@@ -75,7 +76,7 @@ test("allows game to be started with foundations already loaded to a given rank"
 test("can render foundations properly", () => {
   const assertionConfigs = [
     {
-      expectedString: "A♥︎ A♦︎ A♠︎ A♣︎ ",
+      expectedString: "A♥︎  A♦︎  A♠︎  A♣︎  ",
       cards: [
         [HEART, ACE],
         [DIAMOND, ACE],
@@ -84,7 +85,7 @@ test("can render foundations properly", () => {
       ],
     },
     {
-      expectedString: "J♣︎    K♠︎ 7♥︎ ",
+      expectedString: "J♣︎     K♠︎  7♥︎  ",
       cards: [[CLUB, JACK], [], [SPADE, KING], [HEART, SEVEN]],
     },
   ]
@@ -105,7 +106,7 @@ test("can render foundations properly", () => {
 test("can render the draw pile properly", () => {
   const assertionConfigs = [
     {
-      expectedString: "J♥︎",
+      expectedString: "J♥︎ ",
       cards: [
         [DIAMOND, FOUR],
         [HEART, JACK],
@@ -151,7 +152,6 @@ test("can use `performMove` to move tableau red card N to tableau black card N +
   const deck = setFrontOfDeck(new Deck(), deckConfig)
   const game = newQuietGame({ deck })
   game.start()
-  game.displayGame()
   const moveIdx = game
     .availableMoves()
     .findIndex(
@@ -165,9 +165,86 @@ test("can use `performMove` to move tableau red card N to tableau black card N +
   )
   expect(game.tableau[1].totalSize()).toBe(3)
 })
-test.todo(
-  "can use `performMove` to move tableau card with other cards on top of it"
-)
+
+test("when a tableau pile has no face-up cards, the top of the face-down cards is flipped", () => {
+  const tableauPile1 = [
+    // Ignore this
+    [ACE, CLUB],
+  ]
+  const tableauPile2 = [
+    // This card will start out face down
+    [TWO, CLUB],
+    // This card will be moved to the Three of Diamonds below
+    [TWO, SPADE],
+  ]
+  const tableauPile3 = [
+    // Ignore this card (face down)
+    [THREE, CLUB],
+    // Ignore this card (face down)
+    [FOUR, CLUB],
+    [THREE, DIAMOND],
+  ]
+  const deckConfig = [...tableauPile1, ...tableauPile2, ...tableauPile3]
+  const deck = setFrontOfDeck(new Deck(), deckConfig)
+  const game = new SolitaireGame({ deck })
+  game.start()
+  // Move the Two of Spades onto the Three of Diamonds
+  const firstMoveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+    )
+  game.performMove(firstMoveIdx)
+  expect(game.tableau[1].faceUpStack.peek()).toEqual(
+    new Card({ rank: TWO, suit: CLUB })
+  )
+  expect(game.tableau[1].totalSize()).toBe(1)
+})
+
+// test("can use `performMove` to move tableau card with other cards on top of it", () => {
+//   const tableauPile1 = [
+//     // First, this card will be placed on the three of diamonds
+//     [TWO, SPADE],
+//   ]
+//   const tableauPile2 = [
+//     // Ignore this card (face down)
+//     [FOUR, CLUB],
+//     // Once this three of diamonds has a Two of Spades on it, we'll move it to the Four of Spades.
+//     [THREE, DIAMOND],
+//   ]
+//   const tableauPile3 = [
+//     // Ignore this card (face down)
+//     [FIVE, CLUB],
+//     // Ignore this card (face down)
+//     [SIX, CLUB],
+//     [FOUR, SPADE],
+//   ]
+//   const deckConfig = [...tableauPile1, ...tableauPile2, ...tableauPile3]
+//   const deck = setFrontOfDeck(new Deck(), deckConfig)
+//   const game = newQuietGame({ deck })
+//   game.start()
+//   // First, move the Two of Spades onto the Three of Diamonds
+//   const firstMoveIdx = game
+//     .availableMoves()
+//     .findIndex(
+//       (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+//     )
+//   game.performMove(firstMoveIdx)
+//   // Then, move the Three of Diamonds onto the Four of Spades
+//   const secondMoveIdx = game
+//     .availableMoves()
+//     .findIndex(
+//       (move) =>
+//         move.from?.card.rank === THREE && move.from?.card.suit === DIAMOND
+//     )
+//   game.performMove(secondMoveIdx)
+//   expect(game.tableau[0].faceUpStack.peek()).toBeUndefined()
+//   expect(game.tableau[0].totalSize()).toBe(0)
+//   expect(game.tableau[1].faceUpStack.peek()).toEqual(
+//     new Card({ suit: SPADE, rank: TWO })
+//   )
+//   expect(game.tableau[1].totalSize()).toBe(3)
+// })
 
 const testAvailableMoves = ({ testName, getDeck, move }) =>
   test("availableMoves " + testName, () => {
@@ -175,7 +252,6 @@ const testAvailableMoves = ({ testName, getDeck, move }) =>
     const game = newQuietGame({ deck })
 
     game.start()
-    game.displayGame()
     // Usually, our desired move will not be the only available move.
     expect(game.availableMoves()).toContainEqual(move)
   })

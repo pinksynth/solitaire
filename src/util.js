@@ -1,6 +1,7 @@
 const ANSI = {
   Reset: "\x1b[0m",
   Bright: "\x1b[1m",
+  Dim: "\x1b[2m",
 
   FgRed: "\x1b[31m",
   FgGreen: "\x1b[32m",

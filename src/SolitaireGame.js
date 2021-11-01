@@ -148,13 +148,18 @@ class SolitaireGame {
       }
     } else if (toPile.kind === STR_TABLEAU) {
       if (fromPile.kind === STR_TABLEAU) {
-        const tableauStackFrom = this.#getFaceupTableauStack(fromPile.order)
+        const tableauPileFrom = this.#getTableauPile(fromPile.order)
+        const tableauStackFrom = tableauPileFrom.faceUpStack
         const tableauStackTo = this.#getFaceupTableauStack(toPile.order)
         const stack = tableauStackFrom.takeTopOfStackFromCard({
           suit: fromCard.suit,
           rank: fromCard.rank,
         })
         tableauStackTo.push(stack)
+        if (tableauPileFrom.totalSize() > 0 && tableauStackFrom.size() === 0) {
+          const flippedCard = tableauPileFrom.faceDownStack.take(1)
+          tableauStackFrom.push(flippedCard)
+        }
       }
     }
   }
@@ -294,9 +299,13 @@ class SolitaireGame {
     }
   }
 
-  #getFaceupTableauStack(order) {
+  #getTableauPile(order) {
     const index = order - 1
-    return this.tableau[index].faceUpStack
+    return this.tableau[index]
+  }
+
+  #getFaceupTableauStack(order) {
+    return this.#getTableauPile(order).faceUpStack
   }
 
   #getFoundationStack(order) {
@@ -347,7 +356,7 @@ class SolitaireGame {
         tableuPileCards[tableauIdx].push(this.#getANSICardShortName(c))
       )
       tableauPile.faceDownStack.cards.forEach(() =>
-        tableuPileCards[tableauIdx].push(" x ")
+        tableuPileCards[tableauIdx].push(` ${ANSI.Dim}🂠${ANSI.Reset} `)
       )
       // Reverse the cards for each pile because we're rendering from the top-down.
       tableuPileCards[tableauIdx] = tableuPileCards[tableauIdx].reverse()
