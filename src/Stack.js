@@ -28,6 +28,14 @@ class Stack {
     return new Stack({ faceUp: this.faceUp, cards })
   }
 
+  takeTopOfStackFromCard({ suit, rank }) {
+    const cardIdx = this.findCardIndex({ suit, rank })
+    // Card does not exist in this Stack
+    if (cardIdx === -1) return false
+    const newStack = this.cards.splice(cardIdx)
+    return new Stack({ faceUp: this.faceUp, cards: newStack })
+  }
+
   peek() {
     return this.cards[this.cards.length - 1]
   }

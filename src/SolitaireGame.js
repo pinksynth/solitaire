@@ -146,8 +146,17 @@ class SolitaireGame {
         const card = this.drawPile.take(1)
         foundationStack.push(card)
       }
+    } else if (toPile.kind === STR_TABLEAU) {
+      if (fromPile.kind === STR_TABLEAU) {
+        const tableauStackFrom = this.#getFaceupTableauStack(fromPile.order)
+        const tableauStackTo = this.#getFaceupTableauStack(toPile.order)
+        const stack = tableauStackFrom.takeTopOfStackFromCard({
+          suit: fromCard.suit,
+          rank: fromCard.rank,
+        })
+        tableauStackTo.push(stack)
+      }
     }
-    // SAMMY! This is where the magic happens. Perform the move here. Start with a move from Tableau to Foundations (See failing test)
   }
 
   countCardsInTableau() {

@@ -137,6 +137,38 @@ test("can use `performMove` to move an ace from tableau to foundations", () => {
   expect(game.tableau[0].totalSize()).toBe(0)
 })
 
+test("can use `performMove` to move tableau red card N to tableau black card N + 1", () => {
+  const tableauPile1 = [
+    // This card will be placed on the three of diamonds
+    [TWO, SPADE],
+  ]
+  const tableauPile2 = [
+    // Ignore this card
+    [FOUR, CLUB],
+    [THREE, DIAMOND],
+  ]
+  const deckConfig = [...tableauPile1, ...tableauPile2]
+  const deck = setFrontOfDeck(new Deck(), deckConfig)
+  const game = newQuietGame({ deck })
+  game.start()
+  game.displayGame()
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+    )
+  game.performMove(moveIdx)
+  expect(game.tableau[0].faceUpStack.peek()).toBeUndefined()
+  expect(game.tableau[0].totalSize()).toBe(0)
+  expect(game.tableau[1].faceUpStack.peek()).toEqual(
+    new Card({ suit: SPADE, rank: TWO })
+  )
+  expect(game.tableau[1].totalSize()).toBe(3)
+})
+test.todo(
+  "can use `performMove` to move tableau card with other cards on top of it"
+)
+
 const testAvailableMoves = ({ testName, getDeck, move }) =>
   test("availableMoves " + testName, () => {
     const deck = getDeck()
