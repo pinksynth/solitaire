@@ -6,7 +6,6 @@ const {
   STR_FOUNDATION,
   STR_DRAW_PILE,
 } = require("./constants")
-const Card = require("./Card")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
@@ -160,6 +159,9 @@ class SolitaireGame {
           const flippedCard = tableauPileFrom.faceDownStack.take(1)
           tableauStackFrom.push(flippedCard)
         }
+      } else if (fromPile.kind === STR_DRAW_PILE) {
+        console.log("from", from)
+        console.log("to", to)
       }
     }
   }
