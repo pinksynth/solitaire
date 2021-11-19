@@ -44,3 +44,22 @@ test("allows card to be brought to a given index", () => {
 
   expect(deck.cards).toHaveProperty("length", 52)
 })
+
+test("allows many cards to be brought to given indices", () => {
+  const deck = new Deck()
+  deck.shuffle()
+
+  deck.bringCardsToIndices([
+    [EIGHT, SPADE, 35],
+    [FIVE, DIAMOND, 0],
+    [TWO, HEART, 51],
+    [JACK, CLUB, 6],
+  ])
+
+  expect(deck.cards[35]).toEqual(new Card({ suit: SPADE, rank: EIGHT }))
+  expect(deck.cards[0]).toEqual(new Card({ suit: DIAMOND, rank: FIVE }))
+  expect(deck.cards[51]).toEqual(new Card({ suit: HEART, rank: TWO }))
+  expect(deck.cards[6]).toEqual(new Card({ suit: CLUB, rank: JACK }))
+
+  expect(deck.cards).toHaveProperty("length", 52)
+})

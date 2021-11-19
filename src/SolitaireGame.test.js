@@ -252,8 +252,26 @@ test("can use `performMove` to move tableau card with other cards on top of it",
   expect(game.tableau[2].faceDownStack.size()).toBe(2)
 })
 
-// SAMMY! Mock out the drawpile needed for these tests using Deck.bringCardToIndex. The tableau gets 28 cards (1+2+3+4+5+6+7), so the indices of drawpile cards would be 28+.
-test.todo("can use `performMove` to move draw pile card to the tableau")
+test("can use `performMove` to move draw pile card to the tableau", () => {
+  const deck = new Deck()
+  deck.bringCardsToIndices([
+    [FOUR, SPADE, 51], // Far left of tableau
+    [THREE, HEART, 23], // Top of drawpile
+  ])
+  const game = newQuietGame({ deck })
+  game.start()
+  // Move the Three of Hearts onto the Four of Spades
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === THREE && move.from?.card.suit === HEART
+    )
+  game.performMove(moveIdx)
+  expect(game.tableau[0].totalSize()).toBe(2)
+  expect(game.tableau[0].faceUpStack.peek()).toEqual(
+    new Card({ suit: HEART, rank: THREE })
+  )
+})
 test.todo("can use `performMove` to move draw pile card to the foundations")
 
 const testAvailableMoves = ({ testName, getDeck, move }) =>

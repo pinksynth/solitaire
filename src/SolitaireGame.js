@@ -160,8 +160,9 @@ class SolitaireGame {
           tableauStackFrom.push(flippedCard)
         }
       } else if (fromPile.kind === STR_DRAW_PILE) {
-        console.log("from", from)
-        console.log("to", to)
+        const card = this.drawPile.take(1)
+        const tableauStackTo = this.#getFaceupTableauStack(toPile.order)
+        tableauStackTo.push(card)
       }
     }
   }

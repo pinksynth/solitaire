@@ -30,6 +30,23 @@ class Deck {
     return true
   }
 
+  bringCardsToIndices(cardIndexTriples) {
+    const sortedTriples = [...cardIndexTriples].sort(
+      ([, , newIndexA], [, , newIndexB]) => {
+        return newIndexA - newIndexB
+      }
+    )
+
+    // First, bring all these cards to the top of the deck to preserve the new indices.
+    for (const [rank, suit] of sortedTriples) {
+      this.bringCardToTop({ suit, rank })
+    }
+    // Then, bring the cards to the indices.
+    for (const [rank, suit, newIndex] of sortedTriples) {
+      this.bringCardToIndex({ suit, rank }, newIndex)
+    }
+  }
+
   bringCardToTop({ suit, rank }) {
     return this.bringCardToIndex({ suit, rank }, 51)
   }
