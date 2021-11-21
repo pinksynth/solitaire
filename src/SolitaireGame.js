@@ -29,6 +29,7 @@ class SolitaireGame {
 
     this.drawPile = new Stack({ cards: this.deck.cards })
     this.showRowNumber = !!showRowNumber
+    this.isComplete = false
   }
 
   start() {
@@ -166,14 +167,24 @@ class SolitaireGame {
           rank: fromCard.rank,
         })
         tableauStackTo.push(stack)
-        if (tableauPileFrom.totalSize() > 0 && tableauStackFrom.size() === 0) {
-          const flippedCard = tableauPileFrom.faceDownStack.take(1)
-          tableauStackFrom.push(flippedCard)
-        }
       } else if (fromPile.kind === STR_DRAW_PILE) {
         const card = this.drawPile.take(1)
         const tableauStackTo = this.#getFaceupTableauStack(toPile.order)
         tableauStackTo.push(card)
+      }
+    }
+    this.#flipTableauCards()
+    this.isComplete = this.foundations.every((f) => f.peek()?.rank === KING)
+  }
+
+  #flipTableauCards() {
+    for (const tableauPile of this.tableau) {
+      if (
+        tableauPile.faceDownStack.size() > 0 &&
+        tableauPile.faceUpStack.size() === 0
+      ) {
+        const flippedCard = tableauPile.faceDownStack.take(1)
+        tableauPile.faceUpStack.push(flippedCard)
       }
     }
   }
@@ -297,10 +308,8 @@ class SolitaireGame {
     order = 1
     kind = STR_TABLEAU
     for (const tableauPile of this.tableau) {
-      // Sammy! For-of in Stack isn't working properly. See note at Stack.
-      tableauPile.faceUpStack.forEach((card) => {
-        eligiblePlaces.push({ pile: { kind, order }, card })
-      })
+      const topCard = tableauPile.faceUpStack.peek()
+      if (topCard) eligiblePlaces.push({ pile: { kind, order }, card: topCard })
 
       // If there are no cards in the tableau pile, it is an eligible move (for a King)
       if (tableauPile.isEmpty()) {
@@ -317,8 +326,8 @@ class SolitaireGame {
       const suit = parseInt(strSuit)
       for (let rank = 1; rank <= foundationRank; rank++) {
         this.drawPile.bringCardToTop({ suit, rank })
-        // The available move will be to move the next card (starting with ace) to the eligible foundation.
-        this.performMove(0)
+        // The only available move (besides cycling drawpile, which is always 0) will be to move the next card (starting with ace) to the eligible foundation.
+        this.performMove(1)
       }
     }
   }

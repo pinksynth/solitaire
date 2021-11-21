@@ -188,6 +188,36 @@ test("can use `performMove` to move tableau red card N to tableau black card N +
   expect(game.tableau[1].totalSize()).toBe(4)
 })
 
+test("`availableMoves` does not allow a tableau card to be placed on the card it is already on", () => {
+  const tableauPile1 = [
+    // This card will be placed on the three of diamonds in pile 2.
+    [TWO, SPADE],
+  ]
+  const tableauPile2 = [
+    // We make sure that this card is hidden so that it doesn't end up on the top of any other tableau piles due to randomness (that would affect the test).
+    [THREE, HEART],
+    // This is the card on which the two of spades will be placed
+    [THREE, DIAMOND],
+  ]
+  const deckConfig = [...tableauPile1, ...tableauPile2]
+  const deck = setFrontOfDeck(new Deck(), deckConfig)
+  const game = newQuietGame({ deck })
+  game.start()
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+    )
+  game.performMove(moveIdx)
+
+  const move2Idx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+    )
+  expect(move2Idx).toBe(-1)
+})
+
 test("when a tableau pile has no face-up cards, the top of the face-down cards is flipped", () => {
   const tableauPile1 = [
     // Ignore this
@@ -374,7 +404,6 @@ const testAvailableMoves = ({ testName, getDeck, move }) =>
     const game = newQuietGame({ deck })
 
     game.start()
-    // Usually, our desired move will not be the only available move.
     expect(game.availableMoves()).toContainEqual(move)
   })
 

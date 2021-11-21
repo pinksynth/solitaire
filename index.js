@@ -6,14 +6,16 @@ game.start()
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function dumbGame() {
-  while (true) {
-    await wait(1000)
+  while (!game.isComplete) {
+    await wait(5)
+    console.clear()
     game.displayGame()
-    const move = game.availableMoves()[1]
-    console.log("move.label", move.label)
-    if (!move) return
-    game.performMove(1)
+    const randomIdx = Math.floor(Math.random() * game.availableMoves().length)
+    game.performMove(randomIdx)
   }
+  console.clear()
+  game.displayGame()
+  console.log("Congration! You done it!")
 }
 
 dumbGame()
