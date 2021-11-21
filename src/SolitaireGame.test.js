@@ -272,7 +272,28 @@ test("can use `performMove` to move draw pile card to the tableau", () => {
     new Card({ suit: HEART, rank: THREE })
   )
 })
-test.todo("can use `performMove` to move draw pile card to the foundations")
+
+test("can use `performMove` to move draw pile card to the foundations", () => {
+  const deck = new Deck()
+  // Top of drawpile
+  deck.bringCardToIndex({ rank: ACE, suit: HEART }, 23)
+  const game = newQuietGame({ deck })
+  game.start()
+  // Move the Three of Hearts onto the Four of Spades
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) =>
+        move.from?.card.rank === ACE &&
+        move.from?.card.suit === HEART &&
+        move.to.pile.kind === "Foundation"
+    )
+  game.performMove(moveIdx)
+  expect(game.foundations[0].size()).toBe(1)
+  expect(game.foundations[0].peek()).toEqual(
+    new Card({ suit: HEART, rank: ACE })
+  )
+})
 
 const testAvailableMoves = ({ testName, getDeck, move }) =>
   test("availableMoves " + testName, () => {
