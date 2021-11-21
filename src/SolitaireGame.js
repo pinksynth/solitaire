@@ -9,7 +9,7 @@ const {
 const Deck = require("./Deck")
 const Stack = require("./Stack")
 const TableauPile = require("./TableauPile")
-const { ANSI } = require("./util")
+const { ANSI, immutableReverse } = require("./util")
 
 class SolitaireGame {
   constructor({
@@ -277,9 +277,10 @@ class SolitaireGame {
     order = 1
     kind = STR_TABLEAU
     for (const tableauPile of this.tableau) {
-      for (const card of tableauPile.faceUpStack) {
+      // Sammy! For-of in Stack isn't working properly. See note at Stack.
+      tableauPile.faceUpStack.forEach((card) => {
         eligiblePlaces.push({ pile: { kind, order }, card })
-      }
+      })
 
       // If there are no cards in the tableau pile, it is an eligible move (for a King)
       if (tableauPile.isEmpty()) {
@@ -333,6 +334,7 @@ class SolitaireGame {
   #dealTableau() {
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const faceDownCards = this.drawPile.take(tableauIdx)
+      faceDownCards.faceUp = false
       const oneFaceUpCard = this.drawPile.take(1)
       this.tableau[tableauIdx].faceUpStack = oneFaceUpCard
       this.tableau[tableauIdx].faceDownStack = faceDownCards
@@ -355,7 +357,7 @@ class SolitaireGame {
     for (let tableauIdx = 0; tableauIdx < this.tableau.length; tableauIdx++) {
       const tableauPile = this.tableau[tableauIdx]
       tableuPileCards[tableauIdx] = []
-      tableauPile.faceUpStack.cards.forEach((c) =>
+      immutableReverse(tableauPile.faceUpStack.cards).forEach((c) =>
         tableuPileCards[tableauIdx].push(this.#getANSICardShortName(c))
       )
       tableauPile.faceDownStack.cards.forEach(() =>

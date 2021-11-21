@@ -27,4 +27,6 @@ const shuffle = (array) => {
   return array
 }
 
-module.exports = { shuffle, ANSI }
+const immutableReverse = (array) => [...array].reverse()
+
+module.exports = { shuffle, ANSI, immutableReverse }

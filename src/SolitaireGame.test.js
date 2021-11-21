@@ -140,30 +140,50 @@ test("can use `performMove` to move an ace from tableau to foundations", () => {
 
 test("can use `performMove` to move tableau red card N to tableau black card N + 1", () => {
   const tableauPile1 = [
-    // This card will be placed on the three of diamonds
-    [TWO, SPADE],
+    // This card will be placed on the four of diamonds in pile 2
+    [THREE, SPADE],
   ]
   const tableauPile2 = [
     // Ignore this card
-    [FOUR, CLUB],
-    [THREE, DIAMOND],
+    [TEN, CLUB],
+    [FOUR, DIAMOND],
   ]
-  const deckConfig = [...tableauPile1, ...tableauPile2]
+  const tableauPile3 = [
+    // Ignore this card
+    [JACK, CLUB],
+    // Ignore this card
+    [QUEEN, CLUB],
+    // This card will be placed on the three of spades that was placed in pile 2
+    [TWO, DIAMOND],
+  ]
+  const deckConfig = [...tableauPile1, ...tableauPile2, ...tableauPile3]
   const deck = setFrontOfDeck(new Deck(), deckConfig)
-  const game = newQuietGame({ deck })
+  // const game = newQuietGame({ deck })
+  const game = new SolitaireGame({ deck })
   game.start()
   const moveIdx = game
     .availableMoves()
     .findIndex(
-      (move) => move.from?.card.rank === TWO && move.from?.card.suit === SPADE
+      (move) => move.from?.card.rank === THREE && move.from?.card.suit === SPADE
     )
   game.performMove(moveIdx)
   expect(game.tableau[0].faceUpStack.peek()).toBeUndefined()
   expect(game.tableau[0].totalSize()).toBe(0)
   expect(game.tableau[1].faceUpStack.peek()).toEqual(
-    new Card({ suit: SPADE, rank: TWO })
+    new Card({ suit: SPADE, rank: THREE })
   )
   expect(game.tableau[1].totalSize()).toBe(3)
+
+  const move2Idx = game
+    .availableMoves()
+    .findIndex(
+      (move) => move.from?.card.rank === TWO && move.from?.card.suit === DIAMOND
+    )
+  game.performMove(move2Idx)
+  expect(game.tableau[1].faceUpStack.peek()).toEqual(
+    new Card({ suit: DIAMOND, rank: TWO })
+  )
+  expect(game.tableau[1].totalSize()).toBe(4)
 })
 
 test("when a tableau pile has no face-up cards, the top of the face-down cards is flipped", () => {

@@ -10,8 +10,9 @@ class Stack {
       )
     }
 
+    // FIXME: When "this.cards" is redefined as a new array, this Symbol.iterator points to the wrong object. How are you supposed to fix this? For now just using forEach
     // Allow for-of for Stacks. There's probably a less ugly way...?
-    this[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(this.cards)
+    // this[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(this.cards)
 
     this.faceUp = faceUp === undefined ? true : faceUp
   }
@@ -59,6 +60,10 @@ class Stack {
 
   map(...mapArgs) {
     return this.cards.map(...mapArgs)
+  }
+
+  forEach(...forEachArgs) {
+    return this.cards.forEach(...forEachArgs)
   }
 
   // TODO: Deck and Stack both have this and it works the same way, so it should probably be inherited.
