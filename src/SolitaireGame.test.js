@@ -16,6 +16,8 @@ const {
   QUEEN,
   TWO,
   FIVE,
+  STR_CYCLE_DRAW_PILE,
+  STR_TABLEAU,
 } = require("./constants")
 const Deck = require("./Deck")
 const SolitaireGame = require("./SolitaireGame")
@@ -59,6 +61,7 @@ test("has a `countCardsInTableau` function", () => {
   expect(game.countCardsInTableau()).toBe(28)
 })
 
+// FIXME: WTF
 test("allows game to be started with foundations already loaded to a given rank", () => {
   // With these 31 cards in the foundations, there will be 21 cards remaining in play (drawpile and tableau).
   const game = newQuietGame({
@@ -158,8 +161,7 @@ test("can use `performMove` to move tableau red card N to tableau black card N +
   ]
   const deckConfig = [...tableauPile1, ...tableauPile2, ...tableauPile3]
   const deck = setFrontOfDeck(new Deck(), deckConfig)
-  // const game = newQuietGame({ deck })
-  const game = new SolitaireGame({ deck })
+  const game = newQuietGame({ deck })
   game.start()
   const moveIdx = game
     .availableMoves()
@@ -206,7 +208,7 @@ test("when a tableau pile has no face-up cards, the top of the face-down cards i
   ]
   const deckConfig = [...tableauPile1, ...tableauPile2, ...tableauPile3]
   const deck = setFrontOfDeck(new Deck(), deckConfig)
-  const game = new SolitaireGame({ deck })
+  const game = newQuietGame({ deck })
   game.start()
   // Move the Two of Spades onto the Three of Diamonds
   const firstMoveIdx = game
@@ -272,6 +274,18 @@ test("can use `performMove` to move tableau card with other cards on top of it",
   expect(game.tableau[2].faceDownStack.size()).toBe(2)
 })
 
+// FIXME: Sammy! index.js fails to run infinitely because availableMoves thinks it's okay to move the Jack of Clubs onto the Queen of Diamonds (which it's already on).
+// A♣︎             |  Q♥︎
+//
+//     Q♦︎   🂠   🂠   🂠   🂠   🂠
+//     J♣︎  8♣︎   🂠   🂠   🂠   🂠
+//              🂠   🂠   🂠   🂠
+//             7♠︎   🂠   🂠   🂠
+//                 J♦︎   🂠   🂠
+//                     1♣︎   🂠
+//                         6♥︎
+//                         5♠︎
+// Move Jack of Clubs to Queen of Diamonds
 test("can use `performMove` to move draw pile card to the tableau", () => {
   const deck = new Deck()
   deck.bringCardsToIndices([
@@ -284,7 +298,10 @@ test("can use `performMove` to move draw pile card to the tableau", () => {
   const moveIdx = game
     .availableMoves()
     .findIndex(
-      (move) => move.from?.card.rank === THREE && move.from?.card.suit === HEART
+      (move) =>
+        move.from?.card.rank === THREE &&
+        move.from?.card.suit === HEART &&
+        move.to.pile.kind === STR_TABLEAU
     )
   game.performMove(moveIdx)
   expect(game.tableau[0].totalSize()).toBe(2)
@@ -313,6 +330,42 @@ test("can use `performMove` to move draw pile card to the foundations", () => {
   expect(game.foundations[0].peek()).toEqual(
     new Card({ suit: HEART, rank: ACE })
   )
+})
+
+test("can use `performMove` to cycle through draw pile cards", () => {
+  const deck = new Deck()
+  deck.bringCardsToIndices([
+    [ACE, SPADE, 23], // Top of drawpile
+    [TWO, SPADE, 22], // Next in drawpile
+    [THREE, SPADE, 21], // Next in drawpile
+  ])
+  const game = newQuietGame({ deck })
+  game.start()
+  game.displayGame()
+  const moveIdx = game
+    .availableMoves()
+    .findIndex(
+      (move) =>
+        move.from?.card.rank === ACE &&
+        move.from?.card.suit === SPADE &&
+        move.to.pile.kind === STR_CYCLE_DRAW_PILE
+    )
+
+  game.performMove(moveIdx)
+  expect(game.drawPile.peek()).toEqual(new Card({ suit: SPADE, rank: TWO }))
+  game.displayGame()
+  const move2Idx = game
+    .availableMoves()
+    .findIndex(
+      (move) =>
+        move.from?.card.rank === TWO &&
+        move.from?.card.suit === SPADE &&
+        move.to.pile.kind === STR_CYCLE_DRAW_PILE
+    )
+
+  game.performMove(move2Idx)
+  expect(game.drawPile.peek()).toEqual(new Card({ suit: SPADE, rank: THREE }))
+  game.displayGame()
 })
 
 const testAvailableMoves = ({ testName, getDeck, move }) =>

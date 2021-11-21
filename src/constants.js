@@ -12,6 +12,7 @@ const RED = 1,
 const STR_TABLEAU = "Tableau"
 const STR_FOUNDATION = "Foundation"
 const STR_DRAW_PILE = "Draw Pile"
+const STR_CYCLE_DRAW_PILE = "Cycle drawpile"
 
 // Values (This is not necessarily the same for all games)
 const ACE = 1,
@@ -67,5 +68,6 @@ module.exports = {
   VALUES,
   STR_TABLEAU,
   STR_FOUNDATION,
+  STR_CYCLE_DRAW_PILE,
   STR_DRAW_PILE,
 }

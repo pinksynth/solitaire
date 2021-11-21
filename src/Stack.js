@@ -85,6 +85,11 @@ class Stack {
   getCard(index) {
     return this.cards[index]
   }
+
+  cycleCard() {
+    const top = this.cards.pop()
+    this.cards = [top, ...this.cards]
+  }
 }
 
 module.exports = Stack

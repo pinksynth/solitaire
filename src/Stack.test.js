@@ -35,3 +35,12 @@ test("allows the top card to be peeked", () => {
   const stack = new Stack({ cards })
   expect(stack.peek()).toEqual(new Card({ rank: 3, suit: DIAMOND }))
 })
+
+test("allows cycleCard to be used to move the top card to the bottom", () => {
+  const cards = [3, 4, 5, 6].map((rank) => new Card({ rank, suit: DIAMOND }))
+  const stack = new Stack({ cards })
+  stack.cycleCard()
+  expect(stack.map((c) => c.rank).join(" ")).toBe("6 3 4 5")
+  stack.cycleCard()
+  expect(stack.map((c) => c.rank).join(" ")).toBe("5 6 3 4")
+})

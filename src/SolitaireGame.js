@@ -5,6 +5,7 @@ const {
   STR_TABLEAU,
   STR_FOUNDATION,
   STR_DRAW_PILE,
+  STR_CYCLE_DRAW_PILE,
 } = require("./constants")
 const Deck = require("./Deck")
 const Stack = require("./Stack")
@@ -81,6 +82,14 @@ class SolitaireGame {
           continue
         }
 
+        // Cycling draw pile cards is always allowed (if there's a card to cycle)
+        else if (
+          movableKind === STR_DRAW_PILE &&
+          eligiblePlaceKind === STR_CYCLE_DRAW_PILE
+        ) {
+          moveIsEligible = true
+        }
+
         // If moving a card to the foundations...
         else if (eligiblePlaceKind === STR_FOUNDATION) {
           let cardIsEligible = true
@@ -134,7 +143,9 @@ class SolitaireGame {
     const { from, to } = this.availableMoves()[moveIdx]
     const { pile: fromPile, card: fromCard } = from
     const { pile: toPile, card: toCard } = to
-    if (toPile.kind === STR_FOUNDATION) {
+    if (toPile.kind === STR_CYCLE_DRAW_PILE) {
+      this.drawPile.cycleCard()
+    } else if (toPile.kind === STR_FOUNDATION) {
       if (fromPile.kind === STR_TABLEAU) {
         const tableauStack = this.#getFaceupTableauStack(fromPile.order)
         const foundationStack = this.#getFoundationStack(toPile.order)
@@ -251,15 +262,24 @@ class SolitaireGame {
     const destination = to.card
       ? to.card.getName()
       : to.pile.kind + " " + to.pile.order
-    return {
-      from,
-      to,
-      label: `Move ${from.card.getName()} to ${destination}`,
+
+    let label
+    if (to.pile.kind === STR_CYCLE_DRAW_PILE) {
+      label = "Cycle the draw pile"
+    } else {
+      label = `Move ${from.card.getName()} to ${destination}`
     }
+    return { from, to, label }
   }
 
   #getEligiblePlaces() {
     const eligiblePlaces = []
+
+    // It is always eligible to cycle through the draw pile.
+    eligiblePlaces.push({
+      pile: { kind: STR_CYCLE_DRAW_PILE },
+      card: undefined,
+    })
 
     // Foundations are always placeable cards (except Kings)
     let order = 1

@@ -9,10 +9,10 @@ async function dumbGame() {
   while (true) {
     await wait(1000)
     game.displayGame()
-    const move = game.availableMoves()[0]
+    const move = game.availableMoves()[1]
     console.log("move.label", move.label)
     if (!move) return
-    game.performMove(0)
+    game.performMove(1)
   }
 }
 
